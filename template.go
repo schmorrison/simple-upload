@@ -40,6 +40,8 @@ func indexPage(w http.ResponseWriter, r *http.Request) {
 		<form action="/upload" method="post" enctype="multipart/form-data" class="dropzone">
 			<div class="fallback">
 				<input name="file" type="file" />
+				<br><br>
+				<input type="submit" value="UPLOAD">
 			</div>
 		</form>
 	</body>
