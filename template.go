@@ -11,11 +11,23 @@ import (
 
 func indexPage(w http.ResponseWriter, r *http.Request) {
 
-	staticRes, err := getStaticFiles()
+	jsRes, err := getStaticFiles(jsFiles)
 	if err != nil {
-		err = fmt.Errorf("Failed to get static resources: %s", err)
+		err = fmt.Errorf("Failed to get JS resources: %s", err)
 		fmt.Println(err)
 		return
+	}
+
+	cssRes, err := getStaticFiles(cssFiles)
+	if err != nil {
+		err = fmt.Errorf("Failed to get CSS resources: %s", err)
+		fmt.Println(err)
+		return
+	}
+
+	m := map[string]map[string]string{
+		"Scripts": jsRes,
+		"Styles":  cssRes,
 	}
 
 	templatePage := template.New("UploadFilePage")
@@ -27,8 +39,12 @@ func indexPage(w http.ResponseWriter, r *http.Request) {
 		<meta charset="utf-8">
 		<title>Simple Upload</title>
 
-		<script>%s</script>
-		<style>%s</style>
+		{{ range $key, $value := .Scripts }}
+		<script>{{ . }}</script>
+		{{ end}}
+		{{ range $key, $value := .Styles }}
+		<style>{{ . }}</style>
+		{{ end }}
 	</head>
 	
 	<body>
@@ -46,7 +62,7 @@ func indexPage(w http.ResponseWriter, r *http.Request) {
 		</form>
 	</body>
 </html>
-`, staticRes["JS"], staticRes["CSS"])))
+`, m)))
 
 	if err := t.Execute(w, ""); err != nil {
 		err = fmt.Errorf("Failed to execute template: %s", err)
@@ -55,39 +71,44 @@ func indexPage(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func getStaticFiles() (map[string]string, error) {
+var jsFiles = map[string]string{
+	"dropzoneCSS":    "/res/dropzone.min.css",
+	"materializeCSS": "/res/materialize.min.css",
+}
+var cssFiles = map[string]string{
+	"dropzoneJS":    "/res/dropzone.min.js",
+	"materializeJS": "/res/materialize.min.js"}
+
+func getStaticFiles(list map[string]string) (map[string]string, error) {
 	m := make(map[string]string)
-	cssFile, err := assets.FS.Open("/res/basic.min.css")
+
+	for k, v := range list {
+		body, err := readFile(v)
+		if err != nil {
+			err = fmt.Errorf("Failed to load CSS file: %s", err)
+			fmt.Println(err)
+			return m, err
+		}
+
+		m[k] = body
+	}
+	return m, nil
+}
+
+func readFile(path string) (string, error) {
+	file, err := assets.FS.Open(path)
 	if err != nil {
-		err = fmt.Errorf("Failed to load CSS file: %s", err)
+		err = fmt.Errorf("Failed to load file [%s]: %s", path, err)
 		fmt.Println(err)
-		return m, err
+		return "", err
 	}
 
-	css, err := ioutil.ReadAll(cssFile)
+	body, err := ioutil.ReadAll(file)
 	if err != nil {
-		err = fmt.Errorf("Failed to load CSS file: %s", err)
+		err = fmt.Errorf("Failed to load CSS file [%s]: %s", path, err)
 		fmt.Println(err)
-		return m, err
+		return "", err
 	}
 
-	m["css"] = string(css)
-
-	jsFile, err := assets.FS.Open("/res/dropzone.min.js")
-	if err != nil {
-		err = fmt.Errorf("Failed to load JS file: %s", err)
-		fmt.Println(err)
-		return m, err
-	}
-
-	js, err := ioutil.ReadAll(jsFile)
-	if err != nil {
-		err = fmt.Errorf("Failed to read JS file: %s", err)
-		fmt.Println(err)
-		return m, err
-	}
-
-	m["js"] = string(js)
-
-	return m, err
+	return string(body), nil
 }
