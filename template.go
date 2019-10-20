@@ -5,46 +5,26 @@ import (
 	"html/template"
 	"io/ioutil"
 	"net/http"
+	"os"
 
 	"github.com/schmorrison/simple-upload/assets"
 )
 
 func indexPage(w http.ResponseWriter, r *http.Request) {
 
-	jsRes, err := getStaticFiles(jsFiles)
-	if err != nil {
-		err = fmt.Errorf("Failed to get JS resources: %s", err)
-		fmt.Println(err)
-		return
+	m := map[string][]string{
+		"Scripts": jsFiles,
+		"Styles":  cssFiles,
 	}
 
-	cssRes, err := getStaticFiles(cssFiles)
-	if err != nil {
-		err = fmt.Errorf("Failed to get CSS resources: %s", err)
-		fmt.Println(err)
-		return
-	}
-
-	m := map[string]map[string]string{
-		"Scripts": jsRes,
-		"Styles":  cssRes,
-	}
-
-	templatePage := template.New("UploadFilePage")
+	templatePage := template.New("")
 	t := template.Must(templatePage.Parse(
-		fmt.Sprintf(`
+		fmt.Sprint(`
 <!DOCTYPE html>
 <html>
 	<head>
 		<meta charset="utf-8">
 		<title>Simple Upload</title>
-
-		{{ range $key, $value := .Scripts }}
-		<script>{{ . }}</script>
-		{{ end}}
-		{{ range $key, $value := .Styles }}
-		<style>{{ . }}</style>
-		{{ end }}
 	</head>
 	
 	<body>
@@ -71,28 +51,29 @@ func indexPage(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-var jsFiles = map[string]string{
+var jsFiles = getStaticFiles(map[string]string{
 	"dropzoneCSS":    "/res/dropzone.min.css",
 	"materializeCSS": "/res/materialize.min.css",
-}
-var cssFiles = map[string]string{
+})
+var cssFiles = getStaticFiles(map[string]string{
 	"dropzoneJS":    "/res/dropzone.min.js",
-	"materializeJS": "/res/materialize.min.js"}
+	"materializeJS": "/res/materialize.min.js",
+})
 
-func getStaticFiles(list map[string]string) (map[string]string, error) {
-	m := make(map[string]string)
+func getStaticFiles(list map[string]string) []string {
+	m := []string{}
 
-	for k, v := range list {
+	for _, v := range list {
 		body, err := readFile(v)
 		if err != nil {
 			err = fmt.Errorf("Failed to load CSS file: %s", err)
 			fmt.Println(err)
-			return m, err
+			os.Exit(1)
 		}
 
-		m[k] = body
+		m = append(m, body)
 	}
-	return m, nil
+	return m
 }
 
 func readFile(path string) (string, error) {
