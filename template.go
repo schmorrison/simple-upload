@@ -53,19 +53,20 @@ func indexPage(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func getStaticFiles() (m map[string]string, err error) {
+func getStaticFiles() (map[string]string, error) {
+	m := make(map[string]string)
 	cssFile, err := assets.FS.Open("/res/basic.min.css")
 	if err != nil {
 		err = fmt.Errorf("Failed to load CSS file: %s", err)
 		fmt.Println(err)
-		return
+		return m, err
 	}
 
 	css, err := ioutil.ReadAll(cssFile)
 	if err != nil {
 		err = fmt.Errorf("Failed to load CSS file: %s", err)
 		fmt.Println(err)
-		return
+		return m, err
 	}
 
 	m["css"] = string(css)
@@ -74,17 +75,17 @@ func getStaticFiles() (m map[string]string, err error) {
 	if err != nil {
 		err = fmt.Errorf("Failed to load JS file: %s", err)
 		fmt.Println(err)
-		return
+		return m, err
 	}
 
 	js, err := ioutil.ReadAll(jsFile)
 	if err != nil {
 		err = fmt.Errorf("Failed to read JS file: %s", err)
 		fmt.Println(err)
-		return
+		return m, err
 	}
 
 	m["js"] = string(js)
 
-	return
+	return m, err
 }
