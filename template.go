@@ -54,7 +54,7 @@ func indexPage(w http.ResponseWriter, r *http.Request) {
 }
 
 func getStaticFiles() (m map[string]string, err error) {
-	cssFile, err := assets.FS.Open("basic.min.css")
+	cssFile, err := assets.FS.Open("res/basic.min.css")
 	if err != nil {
 		err = fmt.Errorf("Failed to load CSS file: %s", err)
 		fmt.Println(err)
@@ -70,7 +70,7 @@ func getStaticFiles() (m map[string]string, err error) {
 
 	m["css"] = string(css)
 
-	jsFile, err := assets.FS.Open("dropzone.min.js")
+	jsFile, err := assets.FS.Open("res/dropzone.min.js")
 	if err != nil {
 		err = fmt.Errorf("Failed to load JS file: %s", err)
 		fmt.Println(err)
