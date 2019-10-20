@@ -55,5 +55,5 @@ func main() {
 	// Template endpoint
 	http.HandleFunc("/", indexPage)
 
-	http.ListenAndServe(":8765", nil)
+	http.ListenAndServe("0.0.0.0:8765", nil)
 }
