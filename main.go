@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"strings"
 )
 
 func uploadFile(w http.ResponseWriter, r *http.Request) {
@@ -44,13 +45,34 @@ func uploadFile(w http.ResponseWriter, r *http.Request) {
 	fmt.Printf("\tName:\t%s\n\tSize:\t%d\n", handler.Filename, handler.Size)
 }
 
+// func downloadFile(w http.ResponseWriter, r *http.Request) {
+// 	// Get filename from URL query params
+// 	path := r.URL.Query().Get("filepath")
+
+// 	b, err := ioutil.ReadFile(path)
+// 	if err != nil {
+// 		err = fmt.Errorf("Failed to locate file '%s': %s", path, err)
+// 		fmt.Println(err)
+
+// 		w.WriteHeader(http.StatusBadRequest)
+// 		w.Write([]byte(err.Error()))
+// 		return
+// 	}
+
+// 	w.Header().Set("Content-Disposition", fmt.Sprintf("attachment; filename=%s", path))
+// 	w.Header().Set("Content-Type", r.Header.Get("Content-Type"))
+// 	w.Header().Set("Content-Length", fmt.Sprint(binary.Size(b)))
+// 	w.Write(b)
+// }
+
 func main() {
+	fmt.Println("Starting Server.... Port : 8765")
 	// Upload file endpoint
-	http.HandleFunc("/upload", uploadFile)
+	http.HandleFunc("/upload/", uploadFile)
+	// http.HandleFunc("/download/", downloadFile)
 
 	// Static resources endpoint
-	fs := http.FileServer(http.Dir("res"))
-	http.Handle("/res/", http.StripPrefix("/res/", fs))
+	http.Handle("/files/", http.StripPrefix(strings.TrimRight("/files/", "/"), http.FileServer(http.Dir("./"))))
 
 	// Template endpoint
 	http.HandleFunc("/", indexPage)
