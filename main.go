@@ -5,7 +5,10 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"os"
 	"strings"
+
+	"github.com/gorilla/handlers"
 )
 
 func uploadFile(w http.ResponseWriter, r *http.Request) {
@@ -72,8 +75,7 @@ func main() {
 	// http.HandleFunc("/download/", downloadFile)
 
 	// Static resources endpoint
-	http.Handle("/files/", http.StripPrefix(strings.TrimRight("/files/", "/"), http.FileServer(http.Dir("./"))))
-
+	http.Handle("/files/", handlers.LoggingHandler(os.Stdout, http.StripPrefix(strings.TrimRight("/files/", "/"), http.FileServer(http.Dir("./")))))
 	// Template endpoint
 	http.HandleFunc("/", indexPage)
 
